@@ -1,1 +1,0 @@
-# jmtalec.github.io
