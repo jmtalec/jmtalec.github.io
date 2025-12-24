@@ -1,1 +1,1 @@
-Accéder au site web <https://jmtalec.github.io>
+Accéder au site web : <https://jmtalec.github.io>.
