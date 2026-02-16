@@ -9,8 +9,11 @@
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <style>
-body {
+html, body {
+  height: 100%;
   margin: 0;
+}
+body {
   font-family: Arial, sans-serif;
   background: #f4f6f9;
   display: flex;
@@ -20,16 +23,16 @@ body {
 }
 
 .form {
+  flex: 0 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  height: 50%;
-  padding: 10px 10px 0px 10px;
+  padding: 10px;
 }
 
 input, button {
   padding: 12px;
-  margin: 5px 0;
+  margin: 6px 0;
   font-size: 16px;
   border-radius: 8px;
   border: 1px solid #ddd;
@@ -50,10 +53,8 @@ button:active {
 
 #map {
   width: 100%;
-  max-width: 500px;
-  height: 600px;
+  flex: 1 1 auto;
   display: none; /* caché au départ */
-  margin-top: 10px;
 }
 </style>
 </head>
@@ -100,10 +101,13 @@ function alert_status(msg) {
   status.innerText = msg;
 }
 
+document.getElementById("username").value = localStorage.getItem('username');;
+
 // 🔹 Enregistrer la position
 window.saveLocation = function() {
   alert_status("Partage de la position...");
   const name = document.getElementById("username").value;
+  localStorage.setItem('username', name);
   if (!name) { alert_status("Entre ton nom"); return; }
 
   if (!navigator.geolocation) { alert_status("Géolocalisation non supportée"); return; }
