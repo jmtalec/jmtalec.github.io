@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mini App Position</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f4f6f9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 0px 0px 0px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 10px 0px 10px;
+}
+
+input, button {
+  padding: 12px;
+  margin: 5px 0;
+  font-size: 16px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+
+button {
+  background: #4285F4;
+  color: white;
+  font-weight: bold;
+  border: none;
+  cursor: pointer;
+  width: 200px;
+}
+
+button:active {
+  transform: scale(0.97);
+}
+
+#map {
+  width: 100%;
+  max-width: 500px;
+  height: 400px;
+  margin-top: 20px;
+  display: none; /* caché au départ */
+}
+</style>
+</head>
+<body>
+
+
+<div class="form">
+<h2>🤡 Où est Charlie ?</h2>
+
+<input type="text" id="username" placeholder="Nom équipe">
+<button onclick="saveLocation()">Partager ma position</button>
+<button onclick="showLatestPosition()">Voir position</button>
+<div id="status"></div>
+
+</div>
+
+<div id="map" style="margin-top: 10px;"></div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+
+// 🔥 REMPLACE PAR TA CONFIG FIREBASE
+  const firebaseConfig = {
+    apiKey: "AIzaSyBOTWKe-XAtIdpGSBpCun6ak2RtRbkKabc",
+    authDomain: "ou-est-charlie-c117b.firebaseapp.com",
+    projectId: "ou-est-charlie-c117b",
+    storageBucket: "ou-est-charlie-c117b.firebasestorage.app",
+    messagingSenderId: "355367839296",
+    appId: "1:355367839296:web:8f494a878c501ceed561a5"
+  };
+
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+let map = null;
+let marker = null;
+
+function alert_status(msg) {
+  const status = document.getElementById("status");
+  status.innerText = msg;
+}
+
+// 🔹 Enregistrer la position
+window.saveLocation = function() {
+  alert_status("Partage de la position...");
+  const name = document.getElementById("username").value;
+  if (!name) { alert_status("Entre ton nom"); return; }
+
+  if (!navigator.geolocation) { alert_status("Géolocalisation non supportée"); return; }
+
+  navigator.geolocation.getCurrentPosition(async (position) => {
+    await addDoc(collection(db, "positions"), {
+      name: name,
+      lat: position.coords.latitude,
+      lng: position.coords.longitude,
+      timestamp: new Date()
+    });
+    alert_status("✅ Position partagée !");
+    window.showLatestPosition();
+  }, () => alert_status("Impossible de récupérer la position"));
+}
+
+// 🔹 Voir la dernière position partagée par n'importe qui
+window.showLatestPosition = function() {
+  const mapDiv = document.getElementById("map");
+  mapDiv.style.display = "block";
+
+  const positionsRef = collection(db, "positions");
+
+  // Écoute en temps réel de la position la plus récente
+  const q = query(positionsRef, orderBy("timestamp", "desc"), limit(1));
+
+  // Utiliser onSnapshot pour que tous voient en temps réel
+  onSnapshot(q, (snapshot) => {
+    if (snapshot.empty) return;
+
+    snapshot.forEach(doc => {
+      const data = doc.data();
+
+      if (!map) {
+        map = L.map('map').setView([data.lat, data.lng], 15);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+      } else {
+        map.setView([data.lat, data.lng], 15);
+      }
+
+      if (marker) {
+        marker.setLatLng([data.lat, data.lng]);
+        marker.setPopupContent(`<b>${data.name}</b>`).openPopup();
+      } else {
+        marker = L.marker([data.lat, data.lng]).addTo(map)
+                 .bindPopup(`<b>${data.name}</b>`).openPopup();
+      }
+    });
+  });
+}
+
+
+</script>
+
+</body>
+</html>
+
+
