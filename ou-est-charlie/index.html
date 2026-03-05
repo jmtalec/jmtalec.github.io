@@ -13,6 +13,7 @@ html, body {
   height: 100%;
   margin: 0;
 }
+
 body {
   font-family: Arial, sans-serif;
   background: #f4f6f9;
@@ -22,6 +23,13 @@ body {
   padding: 10px 0px 0px 0px;
 }
 
+h2 {
+  margin-bottom: 0.3em;
+}
+
+a {
+  margin-bottom: 0.6em;
+}
 .form {
   flex: 0 0 auto;
   display: flex;
@@ -67,12 +75,12 @@ button:active {
 
 <div class="form">
 <h2>🤡 Où est Charlie ?</h2>
+<a href="./sounds.html">rudiments slovènes</a>
 
 <input type="text" id="username" placeholder="Nom équipe">
 <button onclick="saveLocation()">Partager ma position</button>
 <button onclick="showLatestPosition()">Voir position</button>
 <div id="status"></div>
-
 </div>
 
 <div id="map"></div>
@@ -122,8 +130,9 @@ window.saveLocation = function() {
   if (!name) { alert_status("Entre ton nom"); return; }
 
   if (!navigator.geolocation) { alert_status("Géolocalisation non supportée"); return; }
-
+  navigator.geolocation.getCurrentPosition(async (position) => {});
   navigator.geolocation.getCurrentPosition(async (position) => {
+    mypos = position;
     await addDoc(collection(db, "positions"), {
       name: name,
       lat: position.coords.latitude,
